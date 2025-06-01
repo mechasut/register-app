@@ -39,25 +39,36 @@
     const db = firebase.database();
 
     function submitId() {
-      const id = document.getElementById("studentId").value.trim();
-      const statusDiv = document.getElementById("status");
+  const id = document.getElementById("studentId").value.trim();
+  const statusDiv = document.getElementById("status");
 
-      if (!id) {
-        statusDiv.innerText = "กรุณากรอก ID";
-        return;
-      }
+  if (!id) {
+    statusDiv.innerText = "กรุณากรอก Student ID";
+    return;
+  }
 
+  statusDiv.innerText = "กำลังตรวจสอบ...";
+
+  db.ref("studentsList/" + id).once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      const name = snapshot.val();
       const timestamp = new Date().toISOString();
 
-      db.ref("students/" + id).set({
+      db.ref("registrations/" + id).set({
+        name: name,
         registeredAt: timestamp
       }).then(() => {
-        statusDiv.innerText = `✔ ลงทะเบียน ID ${id} สำเร็จ`;
+        statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
         document.getElementById("studentId").value = "";
-      }).catch((error) => {
-        statusDiv.innerText = "❌ บันทึกล้มเหลว: " + error.message;
       });
+    } else {
+      statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
     }
+  }).catch(error => {
+    statusDiv.innerText = "⚠️ เกิดข้อผิดพลาด: " + error.message;
+  });
+}
+
   </script>
 </body>
 </html>
