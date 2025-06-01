@@ -2,26 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>ลงทะเบียนด้วย Student ID</title>
+  <title>ลงทะเบียนนักศึกษา</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    input {
-      padding: 10px;
-      font-size: 16px;
-      width: 250px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    input { padding: 10px; font-size: 16px; width: 250px; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #status { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -30,56 +16,47 @@
   <button onclick="submitId()">ลงทะเบียน</button>
   <div id="status"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
   <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycby_hal5dhywfSaS22kCBEa0xCOrq17EPxDlJ1hefS02P9gnwFPkWm6G6qBrc6__iaW4/exec";
+    // Replace with your Firebase config
+    const firebaseConfig = {
+  apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+  authDomain: "mexregister-9a132.firebaseapp.com",
+  databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "mexregister-9a132",
+  storageBucket: "mexregister-9a132.firebasestorage.app",
+  messagingSenderId: "1094324636464",
+  appId: "1:1094324636464:web:d0349da84d0765106116f5",
+  measurementId: "G-L9T0R620TS"
+};
+
+
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     function submitId() {
-      const studentId = document.getElementById("studentId").value.trim();
+      const id = document.getElementById("studentId").value.trim();
       const statusDiv = document.getElementById("status");
 
-      if (!studentId) {
+      if (!id) {
         statusDiv.innerText = "กรุณากรอก ID";
         return;
       }
 
-      statusDiv.innerText = "กำลังตรวจสอบ...";
+      const timestamp = new Date().toISOString();
 
-      // Step 1: ขอข้อมูลทั้งหมดจากฐานข้อมูล
-      fetch(SHEET_URL)
-        .then(res => res.json())
-        .then(data => {
-          // หาหลักแถวของ ID ที่ตรง
-          const header = data[0];
-          const idIndex = header.indexOf("ID");
-          const nameIndex = header.indexOf("Name");
-          const match = data.find(row => row[idIndex] === studentId);
-
-          if (match) {
-            // ถ้าพบ ID → บันทึกลง sheet ใหม่
-            const now = new Date().toLocaleString();
-            const payload = {
-              id: match[idIndex],
-              name: match[nameIndex],
-              time: now
-            };
-
-            fetch(SHEET_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            })
-            .then(r => r.text())
-            .then(msg => {
-              statusDiv.innerText = `✔ ${payload.name} ลงทะเบียนสำเร็จเวลา ${now}`;
-              document.getElementById("studentId").value = "";
-            });
-          } else {
-            statusDiv.innerText = "❌ ไม่พบรหัสนี้ในระบบ";
-          }
-        })
-        .catch(err => {
-          statusDiv.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ";
-        });
+      db.ref("students/" + id).set({
+        registeredAt: timestamp
+      }).then(() => {
+        statusDiv.innerText = `✔ ลงทะเบียน ID ${id} สำเร็จ`;
+        document.getElementById("studentId").value = "";
+      }).catch((error) => {
+        statusDiv.innerText = "❌ บันทึกล้มเหลว: " + error.message;
+      });
     }
   </script>
 </body>
