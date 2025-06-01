@@ -39,14 +39,12 @@
 
     const tbody = document.querySelector("#studentTable tbody");
 
-    db.ref("registrations").once("value").then(snapshot => {
-      snapshot.forEach(child => {
-        const id = child.key;
-        const data = child.val();
+    db.ref("registrations").on("child_added", (snapshot) => {
+        const id = snapshot.key;
+        const data = snapshot.val();
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${id}</td><td>${data.name}</td><td>${data.registeredAt}</td>`;
         tbody.appendChild(tr);
-      });
     });
 
     function downloadCSV() {
