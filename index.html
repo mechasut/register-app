@@ -4,10 +4,24 @@
   <meta charset="UTF-8">
   <title>ลงทะเบียนนักศึกษา</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    input { padding: 10px; font-size: 16px; width: 250px; }
-    button { padding: 10px 20px; font-size: 16px; }
-    #status { margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -21,54 +35,56 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script>
-    // Replace with your Firebase config
+    // ✅ ใส่ config Firebase ของคุณตรงนี้
     const firebaseConfig = {
-  apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
-  authDomain: "mexregister-9a132.firebaseapp.com",
-  databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "mexregister-9a132",
-  storageBucket: "mexregister-9a132.firebasestorage.app",
-  messagingSenderId: "1094324636464",
-  appId: "1:1094324636464:web:d0349da84d0765106116f5",
-  measurementId: "G-L9T0R620TS"
-};
+      apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+      authDomain: "mexregister-9a132.firebaseapp.com",
+      databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mexregister-9a132",
+      storageBucket: "mexregister-9a132.firebasestorage.app",
+      messagingSenderId: "1094324636464",
+      appId: "1:1094324636464:web:d0349da84d0765106116f5",
+      measurementId: "G-L9T0R620TS"
+    };
 
-
-    // Init Firebase
+    // ✅ เริ่มต้น Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ✅ ฟังก์ชันลงทะเบียน
     function submitId() {
-  const id = document.getElementById("studentId").value.trim();
-  const statusDiv = document.getElementById("status");
+    const id = document.getElementById("studentId").value.trim().toUpperCase();  // แปลงให้ชัวร์
 
-  if (!id) {
-    statusDiv.innerText = "กรุณากรอก Student ID";
-    return;
-  }
+    console.log("ID ที่ใช้ค้นหาใน Firebase:", id);  // 🟢 เพิ่มตรงนี้
 
-  statusDiv.innerText = "กำลังตรวจสอบ...";
+    const statusDiv = document.getElementById("status");
 
-  db.ref("studentsList/" + id).once("value").then(snapshot => {
-    if (snapshot.exists()) {
-      const name = snapshot.val();
-      const timestamp = new Date().toISOString();
-
-      db.ref("registrations/" + id).set({
-        name: name,
-        registeredAt: timestamp
-      }).then(() => {
-        statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
-        document.getElementById("studentId").value = "";
-      });
-    } else {
-      statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+    if (!id) {
+      statusDiv.innerText = "กรุณากรอก Student ID";
+      return;
     }
-  }).catch(error => {
-    statusDiv.innerText = "⚠️ เกิดข้อผิดพลาด: " + error.message;
-  });
-}
 
+    statusDiv.innerText = "กำลังตรวจสอบ...";
+
+    db.ref("studentsList/" + id).once("value").then(snapshot => {
+      if (snapshot.exists()) {
+        const name = snapshot.val();
+        const timestamp = new Date().toISOString();
+
+        db.ref("registrations/" + id).set({
+          name: name,
+          registeredAt: timestamp
+        }).then(() => {
+          statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
+          document.getElementById("studentId").value = "";
+        });
+      } else {
+        statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+      }
+    }).catch(error => {
+      statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
+    });
+  }
   </script>
 </body>
 </html>
