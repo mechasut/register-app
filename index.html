@@ -66,6 +66,12 @@
 
     statusDiv.innerText = "กำลังตรวจสอบ...";
 
+    db.ref("registrations/" + id).once("value").then(regSnap => {
+      if (regSnap.exists()) {
+        statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว</span>`;
+        return;
+      }  
+
     db.ref("studentsList/" + id).once("value").then(snapshot => {
       if (snapshot.exists()) {
         const name = snapshot.val();
