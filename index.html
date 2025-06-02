@@ -1,117 +1,152 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="UTF-8">
-  <title>ลงทะเบียนนักศึกษา</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
-      height: 100vh; /* ครอบคลุมทั้งหน้าจอ */
-      margin: 0;
-      background: linear-gradient(to bottom,
-        #ffffff 0%,
-        #eeeeee 30%,
-        #dddddd 70%,
-        #cccccc 100%
-      );
-      background-repeat: no-repeat;  /* 🛑 ป้องกัน repeat */
-      background-attachment: fixed;  /* ✅ ไล่เฉดติดพื้น */
-    }
-    input {
-      padding: 10px;
-      font-size: 16px;
-      width: 250px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>ลงทะเบียนนักศึกษา</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 40px;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #ffffff 0%, #eeeeee 50%, #dddddd 80%, #cccccc 100%);
+            background-repeat: no-repeat;
+            /* 🛑 ป้องกัน repeat */
+            background-attachment: fixed;
+            /* ✅ ไล่เฉดติดพื้น */
+        }
+        
+        input {
+            text-align: center;
+            padding: 20px;
+            font-size: 40px;
+            width: 400px;
+        }
+        
+        button {
+            padding: 15px 20px;
+            font-size: 18px;
+        }
+        
+        #status {
+            margin-top: 20px;
+            min-height: 90px;
+            font-size: 30px;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin: 30px 0;
+        }
+        
+        .bottom-image {
+            margin-top: 10px;
+            max-width: 35%;
+            height: auto;
+        }
+        
+        .bottom-image2 {
+            margin-top: 10px;
+            margin-right: 10px;
+            max-width: 300px;
+            height: auto;
+        }
+    </style>
 </head>
 
 <body>
-  <h1>ลงทะเบียนนักศึกษา</h1>
-  <input type="text" id="studentId" placeholder="กรอก Student ID">
-  <button onclick="submitId()">ลงทะเบียน</button>
-  <div id="status"></div>
+    <h1>ลงทะเบียนนักศึกษา</h1>
+    <div class="form-group">
+        <input type="text" id="studentId" placeholder="กรอก Student ID">
+    </div>
+    <div class="form-group">
+        <button onclick="submitId()">ยืนยัน</button>
+    </div>
+    <div id="status"></div>
+    <div class="form-group">
+        <img src="mecha.png" alt="logo" class="bottom-image2">
+        <img src="automotive.png" alt="logo" class="bottom-image2">
+    </div>
+    <div class="form-group">
+        <img src="SUT_Engineering_Th.png" alt="logo" class="bottom-image">
+    </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
-    authDomain: "mexregister-9a132.firebaseapp.com",
-    databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "mexregister-9a132",
-    storageBucket: "mexregister-9a132.firebasestorage.app",
-    messagingSenderId: "1094324636464",
-    appId: "1:1094324636464:web:d0349da84d0765106116f5"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-  window.onload = () => {
-    const input = document.getElementById("studentId");
-    input.focus();
-    input.addEventListener("keyup", function (event) {
-      if (event.key === "Enter") {
-        submitId();
-      }
-    });
-  };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+            authDomain: "mexregister-9a132.firebaseapp.com",
+            databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mexregister-9a132",
+            storageBucket: "mexregister-9a132.firebasestorage.app",
+            messagingSenderId: "1094324636464",
+            appId: "1:1094324636464:web:d0349da84d0765106116f5"
+        };
 
-  function submitId() {
-    const id = document.getElementById("studentId").value.trim();
-    const statusDiv = document.getElementById("status");
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    if (!id) {
-      statusDiv.innerText = "กรุณากรอก Student ID";
-      return;
-    }
+        window.onload = () => {
+            const input = document.getElementById("studentId");
+            input.focus();
+            input.addEventListener("keyup", function(event) {
+                if (event.key === "Enter") {
+                    submitId();
+                }
+            });
+        };
 
-    statusDiv.innerText = "กำลังตรวจสอบ...";
-    console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
+        function submitId() {
+            const id = document.getElementById("studentId").value.trim();
+            const statusDiv = document.getElementById("status");
 
-    db.ref("registrations/" + id).once("value").then(regSnap => {
-      if (regSnap.exists()) {
-        const data = regSnap.val();
-        const name = data.name || "ไม่ทราบชื่อ";
-        statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว: <strong>${name}</strong></span>`;
-        return;
-      }
+            if (!id) {
+                statusDiv.innerText = "กรุณากรอก Student ID";
+                return;
+            }
 
-      db.ref("studentsList/" + id).once("value").then(snapshot => {
-        if (snapshot.exists()) {
-          const student = snapshot.val();
-          const fullName = `${student.firstname} ${student.lastname}`;
-          const timestamp = new Date().toISOString();
+            statusDiv.innerText = "กำลังตรวจสอบ...";
+            console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
 
-          db.ref("registrations/" + id).set({
-            name: fullName,
-            registeredAt: timestamp
-          }).then(() => {
-            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${fullName}</strong></span>`;
-            document.getElementById("studentId").value = "";
-            document.getElementById("studentId").focus();
-          });
-        } else {
-          statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+            db.ref("registrations/" + id).once("value").then(regSnap => {
+                if (regSnap.exists()) {
+                    const data = regSnap.val();
+                    const name = data.name || "ไม่ทราบชื่อ";
+                    statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว<br><strong style="display: block; text-align: center;>${name}</strong></span>`;
+                    return;
+                }
+
+                db.ref("studentsList/" + id).once("value").then(snapshot => {
+                    if (snapshot.exists()) {
+                        const student = snapshot.val();
+                        const fullName = `${student.firstname} ${student.lastname}`;
+                        const timestamp = new Date().toISOString();
+
+                        db.ref("registrations/" + id).set({
+                            name: fullName,
+                            registeredAt: timestamp
+                        }).then(() => {
+                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ<br><strong style="display: block; text-align: center;>${fullName}</strong></span>`;
+                            document.getElementById("studentId").value = "";
+                            document.getElementById("studentId").focus();
+                        });
+                    } else {
+                        statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+                    }
+                });
+            }).catch(error => {
+                statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
+            });
         }
-      });
-    }).catch(error => {
-      statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
-    });
-  }
-</script>
+    </script>
 
 </body>
+
 </html>
