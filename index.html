@@ -36,74 +36,72 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
-      authDomain: "mexregister-9a132.firebaseapp.com",
-      databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "mexregister-9a132",
-      storageBucket: "mexregister-9a132.firebasestorage.app",
-      messagingSenderId: "1094324636464",
-      appId: "1:1094324636464:web:d0349da84d0765106116f5",
-      measurementId: "G-L9T0R620TS"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+    authDomain: "mexregister-9a132.firebaseapp.com",
+    databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "mexregister-9a132",
+    storageBucket: "mexregister-9a132.firebasestorage.app",
+    messagingSenderId: "1094324636464",
+    appId: "1:1094324636464:web:d0349da84d0765106116f5"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // focus + enter
-    window.onload = () => {
-      const input = document.getElementById("studentId");
-      input.focus();
-      input.addEventListener("keyup", function (event) {
-        if (event.key === "Enter") {
-          submitId();
-        }
-      });
-    };
+  window.onload = () => {
+    const input = document.getElementById("studentId");
+    input.focus();
+    input.addEventListener("keyup", function (event) {
+      if (event.key === "Enter") {
+        submitId();
+      }
+    });
+  };
 
-    function submitId() {
-      const id = document.getElementById("studentId").value.trim();
-      const statusDiv = document.getElementById("status");
+  function submitId() {
+    const id = document.getElementById("studentId").value.trim();
+    const statusDiv = document.getElementById("status");
 
-      if (!id) {
-        statusDiv.innerText = "กรุณากรอก Student ID";
+    if (!id) {
+      statusDiv.innerText = "กรุณากรอก Student ID";
+      return;
+    }
+
+    statusDiv.innerText = "กำลังตรวจสอบ...";
+    console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
+
+    db.ref("registrations/" + id).once("value").then(regSnap => {
+      if (regSnap.exists()) {
+        const data = regSnap.val();
+        const name = data.name || "ไม่ทราบชื่อ";
+        statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว: <strong>${name}</strong></span>`;
         return;
       }
 
-      statusDiv.innerText = "กำลังตรวจสอบ...";
-      console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
+      db.ref("studentsList/" + id).once("value").then(snapshot => {
+        if (snapshot.exists()) {
+          const student = snapshot.val();
+          const fullName = `${student.firstname} ${student.lastname}`;
+          const timestamp = new Date().toISOString();
 
-      // ตรวจว่าลงทะเบียนแล้วหรือยัง
-      db.ref("registrations/" + id).once("value").then(regSnap => {
-        if (regSnap.exists()) {
-          const data = regSnap.val();
-          const name = data.name || "ไม่ทราบชื่อ";
-          statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว: <strong>${name}</strong></span>`;
-          return;
+          db.ref("registrations/" + id).set({
+            name: fullName,
+            registeredAt: timestamp
+          }).then(() => {
+            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${fullName}</strong></span>`;
+            document.getElementById("studentId").value = "";
+            document.getElementById("studentId").focus();
+          });
+        } else {
+          statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
         }
-
-        // ตรวจว่าอยู่ใน studentsList หรือไม่
-        db.ref("studentsList/" + id).once("value").then(snapshot => {
-          if (snapshot.exists()) {
-            const name = snapshot.val();
-            const timestamp = new Date().toISOString();
-
-            db.ref("registrations/" + id).set({
-              name: name,
-              registeredAt: timestamp
-            }).then(() => {
-              statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${name}</strong></span>`;
-              document.getElementById("studentId").value = "";
-              document.getElementById("studentId").focus();
-            });
-          } else {
-            statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
-          }
-        });
-      }).catch(error => {
-        statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
       });
-    }
-  </script>
+    }).catch(error => {
+      statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
+    });
+  }
+</script>
+
 </body>
 </html>
