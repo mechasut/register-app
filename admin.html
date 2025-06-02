@@ -75,7 +75,7 @@
       tr.innerHTML = `
         <td>${id}</td>
         <td>${data.name}</td>
-        <td>${data.registeredAt}</td>
+        <td>${convertToThaiTime(data.registeredAt)}</td>
         <td><button class="delete" onclick="deleteById('${id}', this)">ลบ</button></td>
       `;
       tbody.appendChild(tr);
@@ -143,6 +143,13 @@
       }
     }
 
+    function convertToThaiTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString("th-TH", {
+        timeZone: "Asia/Bangkok",
+        hour12: false
+      });
+    }
   </script>
 </body>
 </html>
