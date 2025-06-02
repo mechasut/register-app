@@ -1,94 +1,126 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="UTF-8">
-    <title>รายชื่อนักศึกษาที่ลงทะเบียน</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            padding: 20px;
-        }
-        
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-        
-        th,
-        td {
-            border: 1px solid #aaa;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        th {
-            background-color: #eee;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>รายชื่อนักศึกษาที่ลงทะเบียน</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    button.delete {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
-    <h2>รายชื่อนักศึกษาที่ลงทะเบียน</h2>
-    <button onclick="downloadCSV()">⬇ Export เป็น CSV</button>
-    <table id="studentTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>ชื่อ</th>
-                <th>เวลาที่ลงทะเบียน</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+  <h2>รายชื่อนักศึกษาที่ลงทะเบียน</h2>
+  <button onclick="downloadCSV()">⬇ Export เป็น CSV</button>
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>ชื่อ</th>
+        <th>เวลาที่ลงทะเบียน</th>
+        <th>การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
-            authDomain: "mexregister-9a132.firebaseapp.com",
-            databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "mexregister-9a132",
-            storageBucket: "mexregister-9a132.firebasestorage.app",
-            messagingSenderId: "1094324636464",
-            appId: "1:1094324636464:web:d0349da84d0765106116f5",
-            measurementId: "G-L9T0R620TS"
-        };
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+      authDomain: "mexregister-9a132.firebaseapp.com",
+      databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mexregister-9a132",
+      storageBucket: "mexregister-9a132.firebasestorage.app",
+      messagingSenderId: "1094324636464",
+      appId: "1:1094324636464:web:d0349da84d0765106116f5",
+      measurementId: "G-L9T0R620TS"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const tbody = document.querySelector("#studentTable tbody");
 
-        const tbody = document.querySelector("#studentTable tbody");
+    // 🔄 โหลดข้อมูลแบบ realtime
+    db.ref("registrations").on("child_added", (snapshot) => {
+      const id = snapshot.key;
+      const data = snapshot.val();
 
-        db.ref("registrations").on("child_added", (snapshot) => {
-            const id = snapshot.key;
-            const data = snapshot.val();
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${id}</td><td>${data.name}</td><td>${data.registeredAt}</td>`;
-            tbody.appendChild(tr);
-        });
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td>${data.name}</td>
+        <td>${data.registeredAt}</td>
+        <td><button class="delete" onclick="deleteById('${id}', this)">ลบ</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
 
-        function downloadCSV() {
-            let csv = "ID,Name,RegisteredAt\n";
-            const rows = tbody.querySelectorAll("tr");
-            rows.forEach(row => {
-                const cells = row.querySelectorAll("td");
-                csv += Array.from(cells).map(td => `"${td.innerText}"`).join(",") + "\n";
-            });
+    // 🗑 ลบรายคน พร้อมรหัสยืนยัน
+    function deleteById(id, button) {
+      const code = prompt(`⚠️ ต้องการลบ ID: ${id}\nพิมพ์ DELETE เพื่อยืนยัน`);
+      if (code !== "DELETE") {
+        alert("❌ ยกเลิกการลบ");
+        return;
+      }
 
-            const blob = new Blob([csv], {
-                type: "text/csv"
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "registrations.csv";
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
+      if (confirm(`คุณแน่ใจหรือไม่ ว่าจะลบ ID: ${id} ?`)) {
+        db.ref("registrations/" + id).remove()
+          .then(() => {
+            alert("✅ ลบข้อมูลเรียบร้อย");
+            // ลบแถวออกจากตารางโดยตรง
+            const row = button.closest("tr");
+            row.remove();
+          })
+          .catch(err => {
+            alert("❌ ลบไม่สำเร็จ: " + err.message);
+          });
+      }
+    }
+
+    // 📄 Export CSV
+    function downloadCSV() {
+      let csv = "ID,Name,RegisteredAt\n";
+      const rows = tbody.querySelectorAll("tr");
+      rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        // ไม่รวม column ลบ (ตัวสุดท้าย)
+        const rowText = Array.from(cells).slice(0, 3).map(td => `"${td.innerText}"`).join(",");
+        csv += rowText + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "registrations.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
 </body>
-
 </html>
