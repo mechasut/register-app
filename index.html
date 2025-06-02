@@ -118,9 +118,14 @@
             db.ref("registrations/" + id).once("value").then(regSnap => {
                 if (regSnap.exists()) {
                     const data = regSnap.val();
-                    //const name = data.name || "ไม่ทราบชื่อ";
                     const name = typeof data === "string" ? data : (data.name || "ไม่ทราบชื่อ");
-                    statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว<br><strong style="display: block; text-align: center;>${name}</strong></span>`;
+            
+                    statusDiv.innerHTML = `
+                        <span style="color:orange">
+                            ⚠️ รหัสนี้ลงทะเบียนไปแล้ว<br>
+                            <strong style="display: block; text-align: center;">${name}</strong>
+                        </span>
+                    `;
                     return;
                 }
 
