@@ -110,7 +110,8 @@
       rows.forEach(row => {
         const cells = row.querySelectorAll("td");
         // ไม่รวม column ลบ (ตัวสุดท้าย)
-        const rowText = Array.from(cells).slice(0, 3).map(td => `"${td.innerText}"`).join(",");
+        // const rowText = Array.from(cells).slice(0, 3).map(td => `"${td.innerText}"`).join(",");
+        const rowText = Array.from(cells).slice(0, -1).map(td => `"${td.innerText}"`).join(",");
         csv += rowText + "\n";
       });
 
