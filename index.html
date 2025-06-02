@@ -126,7 +126,7 @@
                 db.ref("studentsList/" + id).once("value").then(snapshot => {
                     if (snapshot.exists()) {
                         const student = snapshot.val();
-                        const fullName = `${student.firstname} ${student.lastname}`;
+                        const fullName = student; // student เป็น string อยู่แล้ว เช่น "ภาคภูมิ สู่แสนสุข"
                         const timestamp = new Date().toISOString();
 
                         db.ref("registrations/" + id).set({
