@@ -119,7 +119,7 @@
                 if (regSnap.exists()) {
                     const data = regSnap.val();
                     const name = typeof data === "string" ? data : (data.name || "ไม่ทราบชื่อ");
-            
+
                     statusDiv.innerHTML = `
                         <span style="color:orange">
                             ⚠️ รหัสนี้ลงทะเบียนไปแล้ว<br>
@@ -132,14 +132,17 @@
                 db.ref("studentsList/" + id).once("value").then(snapshot => {
                     if (snapshot.exists()) {
                         const student = snapshot.val();
-                        const fullName = student; // student เป็น string อยู่แล้ว เช่น "ภาคภูมิ สู่แสนสุข"
+                        const fullName = typeof student === "object" ?
+                            `${student.firstname} ${student.lastname}` :
+                            student; // กรณีเป็น string เดียว เช่น "ภาคภูมิ สู่แสนสุข"
+
                         const timestamp = new Date().toISOString();
 
                         db.ref("registrations/" + id).set({
                             name: fullName,
                             registeredAt: timestamp
                         }).then(() => {
-                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ<br><strong style="display: block; text-align: center;>${fullName}</strong></span>`;
+                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ<br><strong style="display: block; text-align: center;">${fullName}</strong></span>`;
                             document.getElementById("studentId").value = "";
                             document.getElementById("studentId").focus();
                         });
