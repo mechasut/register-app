@@ -69,14 +69,16 @@
             statusDiv.innerText = "กำลังตรวจสอบ...";
             console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
         
-            // 🔒 ตรวจว่าลงทะเบียนซ้ำหรือยัง
+            // 🔒 ตรวจว่ามีการลงทะเบียนซ้ำหรือยัง
             db.ref("registrations/" + id).once("value").then(regSnap => {
                 if (regSnap.exists()) {
-                    statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว</span>`;
+                    const data = regSnap.val();
+                    const name = data.name || "ไม่ทราบชื่อ";
+                    statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว: <strong>${name}</strong></span>`;
                     return;
                 }
         
-                // ✅ ยังไม่ลงทะเบียน → ตรวจใน studentsList
+                // ✅ ยังไม่ลงทะเบียน → ตรวจสอบใน studentsList
                 db.ref("studentsList/" + id).once("value").then(snapshot => {
                     if (snapshot.exists()) {
                         const name = snapshot.val();
@@ -86,7 +88,7 @@
                             name: name,
                             registeredAt: timestamp
                         }).then(() => {
-                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
+                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${name}</strong></span>`;
                             document.getElementById("studentId").value = "";
                         });
                     } else {
