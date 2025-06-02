@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ลงทะเบียนนักศึกษาใหม่</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>ลงทะเบียนนักศึกษาใหม่</h1>
+  <input type="text" id="studentId" placeholder="กรอก Student ID"><br>
+  <input type="text" id="firstName" placeholder="ชื่อ"><br>
+  <input type="text" id="lastName" placeholder="นามสกุล"><br>
+  <button onclick="submitNewStudent()">ลงทะเบียน</button>
+  <div id="status"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <script>
+    // ✅ Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+      authDomain: "mexregister-9a132.firebaseapp.com",
+      databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mexregister-9a132",
+      storageBucket: "mexregister-9a132.firebasestorage.app",
+      messagingSenderId: "1094324636464",
+      appId: "1:1094324636464:web:d0349da84d0765106116f5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function submitNewStudent() {
+      const id = document.getElementById("studentId").value.trim();
+      const first = document.getElementById("firstName").value.trim();
+      const last = document.getElementById("lastName").value.trim();
+      const statusDiv = document.getElementById("status");
+
+      if (!id || !first || !last) {
+        statusDiv.innerHTML = `<span style="color:red">❗ กรุณากรอกข้อมูลให้ครบ</span>`;
+        return;
+      }
+
+      const fullName = `${first} ${last}`;
+
+      db.ref("studentsList/" + id).once("value").then(snapshot => {
+        if (snapshot.exists()) {
+          statusDiv.innerHTML = `<span style="color:orange">⚠️ มีรหัสนี้อยู่ในระบบแล้ว</span>`;
+        } else {
+          db.ref("studentsList/" + id).set(fullName).then(() => {
+            statusDiv.innerHTML = `<span style="color:green">✔ เพิ่มนักศึกษาใหม่สำเร็จ</span>`;
+            document.getElementById("studentId").value = "";
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
