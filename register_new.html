@@ -57,19 +57,19 @@
       const first = document.getElementById("firstName").value.trim();
       const last = document.getElementById("lastName").value.trim();
       const statusDiv = document.getElementById("status");
-
+    
       if (!id || !first || !last) {
         statusDiv.innerHTML = `<span style="color:red">❗ กรุณากรอกข้อมูลให้ครบ</span>`;
         return;
       }
-
+    
       const fullName = `${first} ${last}`;
-
+    
       db.ref("studentsList/" + id).once("value").then(snapshot => {
         if (snapshot.exists()) {
           statusDiv.innerHTML = `<span style="color:orange">⚠️ มีรหัสนี้อยู่ในระบบแล้ว</span>`;
         } else {
-          db.ref("studentsList/" + id).set(fullName).then(() => {
+          db.ref("newStudentsList/" + id).set(fullName).then(() => {
             statusDiv.innerHTML = `<span style="color:green">✔ เพิ่มนักศึกษาใหม่สำเร็จ</span>`;
             document.getElementById("studentId").value = "";
             document.getElementById("firstName").value = "";
@@ -78,6 +78,7 @@
         }
       });
     }
+
   </script>
 </body>
 </html>
