@@ -59,44 +59,21 @@
           submitId();
         }
       });
-      syncOfflineData();
     };
-
-    window.addEventListener("online", syncOfflineData);
-
-    function storeOffline(id, name, timestamp) {
-      const offlineData = JSON.parse(localStorage.getItem("offlineRegistrations")) || [];
-      offlineData.push({ id, name, registeredAt: timestamp });
-      localStorage.setItem("offlineRegistrations", JSON.stringify(offlineData));
-    }
-
-    function syncOfflineData() {
-      const offlineData = JSON.parse(localStorage.getItem("offlineRegistrations")) || [];
-      if (offlineData.length === 0) return;
-
-      offlineData.forEach(entry => {
-        db.ref("registrations/" + entry.id).set({
-          name: entry.name,
-          registeredAt: entry.registeredAt
-        });
-      });
-
-      localStorage.removeItem("offlineRegistrations");
-      console.log("✅ ซิงค์ข้อมูล offline สำเร็จ");
-    }
 
     function submitId() {
       const id = document.getElementById("studentId").value.trim();
       const statusDiv = document.getElementById("status");
 
-      if (!id || !/^[0-9]+$/.test(id)) {
-        statusDiv.innerHTML = "<span style='color:red'>❌ กรุณากรอก ID ที่เป็นตัวเลขเท่านั้น</span>";
+      if (!id) {
+        statusDiv.innerText = "กรุณากรอก Student ID";
         return;
       }
 
       statusDiv.innerText = "กำลังตรวจสอบ...";
       console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
 
+      // ตรวจว่าลงทะเบียนแล้วหรือยัง
       db.ref("registrations/" + id).once("value").then(regSnap => {
         if (regSnap.exists()) {
           const data = regSnap.val();
@@ -105,28 +82,26 @@
           return;
         }
 
+        // ตรวจว่าอยู่ใน studentsList หรือไม่
         db.ref("studentsList/" + id).once("value").then(snapshot => {
           if (snapshot.exists()) {
             const name = snapshot.val();
             const timestamp = new Date().toISOString();
 
-            if (!navigator.onLine) {
-              storeOffline(id, name, timestamp);
-              statusDiv.innerHTML = `<span style='color:orange'>⚠️ ออฟไลน์: บันทึกชั่วคราว ${name}</span>`;
-            } else {
-              db.ref("registrations/" + id).set({ name, registeredAt: timestamp })
-                .then(() => {
-                  statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${name}</strong></span>`;
-                  document.getElementById("studentId").value = "";
-                  document.getElementById("studentId").focus();
-                });
-            }
+            db.ref("registrations/" + id).set({
+              name: name,
+              registeredAt: timestamp
+            }).then(() => {
+              statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: <strong>${name}</strong></span>`;
+              document.getElementById("studentId").value = "";
+              document.getElementById("studentId").focus();
+            });
           } else {
-            statusDiv.innerHTML = `<span style='color:red'>❌ ไม่พบรหัสนี้ในระบบ</span>`;
+            statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
           }
         });
       }).catch(error => {
-        statusDiv.innerHTML = `<span style='color:red'>⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
+        statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
       });
     }
   </script>
