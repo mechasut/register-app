@@ -65,8 +65,11 @@
     
       const fullName = `${first} ${last}`;
     
-      db.ref("studentsList/" + id).once("value").then(snapshot => {
-        if (snapshot.exists()) {
+      Promise.all([
+        db.ref("studentsList/" + id).once("value"),
+        db.ref("newStudentsList/" + id).once("value")
+      ]).then(([mainSnap, newSnap]) => {
+        if (mainSnap.exists() || newSnap.exists()) {
           statusDiv.innerHTML = `<span style="color:orange">⚠️ มีรหัสนี้อยู่ในระบบแล้ว</span>`;
         } else {
           db.ref("newStudentsList/" + id).set(fullName).then(() => {
@@ -78,6 +81,7 @@
         }
       });
     }
+
 
   </script>
 </body>
