@@ -1,76 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>ลงทะเบียนนักศึกษาใหม่</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: sans-serif;
-            text-align: center;
-            padding: 40px;
-            height: 100vh;
             margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
             background: linear-gradient(to bottom, #ffffff 0%, #eeeeee 50%, #dddddd 80%, #cccccc 100%);
-            background-repeat: no-repeat;
-            /* 🛑 ป้องกัน repeat */
             background-attachment: fixed;
-            /* ✅ ไล่เฉดติดพื้น */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+        }
+        
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
         }
         
         input {
-            margin: 5px;
+            display: block;
+            width: 100%;
+            padding: 18px;
+            font-size: 22px;
+            margin: 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             text-align: center;
-            padding: 20px;
-            font-size: 35px;
-            width: 400px;
         }
         
         button {
-            margin-top: 20px;
-            padding: 15px 20px;
+            background-color: #28a745;
+            color: white;
             font-size: 18px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #218838;
         }
         
         #status {
-            margin-top: 20px;
-            min-height: 70px;
+            margin-top: 25px;
             font-size: 30px;
             font-weight: bold;
+            min-height: 60px;
         }
         
-        .form-group {
-            margin: 30px 0;
+        .logos {
+            margin-top: 40px;
+            text-align: center;
         }
         
-        .bottom-image {
-            margin-top: 10px;
-            max-width: 35%;
-            height: auto;
-        }
-        
-        .bottom-image2 {
-            margin-top: 10px;
-            margin-right: 10px;
+        .logos img {
             max-width: 300px;
-            height: auto;
+            margin: 10px;
+        }
+        
+        .form-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0px;
+            padding: 0px;
+        }
+        
+        .form-wrapper input {
+            text-align: center;
+            font-size: 30px;
+            padding: 15px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        
+        .form-wrapper button {
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
         }
     </style>
 </head>
 
 <body>
-    <h1>ลงทะเบียนนักศึกษาใหม่</h1>
-    <input type="text" id="studentId" placeholder="กรอก Student ID"><br>
-    <input type="text" id="firstName" placeholder="ชื่อ">
-    <input type="text" id="lastName" placeholder="นามสกุล"><br>
-    <button onclick="submitNewStudent()">ลงทะเบียน</button>
-    <div id="status"></div>
-    <div class="form-group">
-        <img src="mecha.png" alt="logo" class="bottom-image2">
-        <img src="automotive.png" alt="logo" class="bottom-image2">
+    <div class="card">
+        <h1>ลงทะเบียนนักศึกษาใหม่</h1>
+        <div class="form-wrapper">
+            <input type="text" id="studentId" placeholder="กรอก Student ID">
+            <input type="text" id="firstName" placeholder="ชื่อ">
+            <input type="text" id="lastName" placeholder="นามสกุล">
+            <button onclick="submitNewStudent()">ลงทะเบียน</button>
+        </div>
+        <div id="status"></div>
     </div>
-    <div class="form-group">
-        <img src="SUT_Engineering_Th.png" alt="logo" class="bottom-image">
+
+    <div class="logos">
+        <img src="mecha.png" alt="Mechatronics Logo" />
+        <img src="automotive.png" alt="Automotive Logo" />
+        <br />
+        <img src="SUT_Engineering_Th.png" alt="SUT Logo" style="max-width: 35%;" />
     </div>
 
     <!-- Firebase SDK -->
@@ -78,7 +133,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <script>
-        // ✅ Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
             authDomain: "mexregister-9a132.firebaseapp.com",
@@ -94,7 +148,7 @@
 
         window.onload = () => {
             const inputs = document.querySelectorAll("input");
-            inputs[0].focus(); // focus ที่ช่อง studentId
+            inputs[0].focus();
 
             inputs.forEach(input => {
                 input.addEventListener("keyup", function(event) {
@@ -112,7 +166,7 @@
             const statusDiv = document.getElementById("status");
 
             if (!id || !first || !last) {
-                statusDiv.innerHTML = `<span style="color:red">❗ กรุณากรอกข้อมูลให้ครบ</span>`;
+                statusDiv.innerHTML = `<span style="color:red;">❗ กรุณากรอกข้อมูลให้ครบ</span>`;
                 return;
             }
 
@@ -123,10 +177,10 @@
                 db.ref("newStudentsList/" + id).once("value")
             ]).then(([mainSnap, newSnap]) => {
                 if (mainSnap.exists() || newSnap.exists()) {
-                    statusDiv.innerHTML = `<span style="color:orange">⚠️ มีรหัสนี้อยู่ในระบบแล้ว</span>`;
+                    statusDiv.innerHTML = `<span style="color:orange;">⚠️ มีรหัสนี้อยู่ในระบบแล้ว</span>`;
                 } else {
                     db.ref("newStudentsList/" + id).set(fullName).then(() => {
-                        statusDiv.innerHTML = `<span style="color:green">✔ เพิ่มนักศึกษาใหม่สำเร็จ</span>`;
+                        statusDiv.innerHTML = `<span style="color:green;">✔ เพิ่มนักศึกษาใหม่สำเร็จ</span>`;
                         document.getElementById("studentId").value = "";
                         document.getElementById("firstName").value = "";
                         document.getElementById("lastName").value = "";
