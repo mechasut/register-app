@@ -58,40 +58,46 @@
 
         // ✅ ฟังก์ชันลงทะเบียน
         function submitId() {
-            const id = document.getElementById("studentId").value.trim().toUpperCase(); // แปลงให้ชัวร์
-
-            console.log("ID ที่ใช้ค้นหาใน Firebase:", id); // 🟢 เพิ่มตรงนี้
-
+            const id = document.getElementById("studentId").value.trim().toUpperCase();
             const statusDiv = document.getElementById("status");
-
+        
             if (!id) {
                 statusDiv.innerText = "กรุณากรอก Student ID";
                 return;
             }
-
+        
             statusDiv.innerText = "กำลังตรวจสอบ...";
-
-
-
-            db.ref("studentsList/" + id).once("value").then(snapshot => {
-                if (snapshot.exists()) {
-                    const name = snapshot.val();
-                    const timestamp = new Date().toISOString();
-
-                    db.ref("registrations/" + id).set({
-                        name: name,
-                        registeredAt: timestamp
-                    }).then(() => {
-                        statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
-                        document.getElementById("studentId").value = "";
-                    });
-                } else {
-                    statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+            console.log("ID ที่ใช้ค้นหาใน Firebase:", id);
+        
+            // 🔒 ตรวจว่าลงทะเบียนซ้ำหรือยัง
+            db.ref("registrations/" + id).once("value").then(regSnap => {
+                if (regSnap.exists()) {
+                    statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว</span>`;
+                    return;
                 }
+        
+                // ✅ ยังไม่ลงทะเบียน → ตรวจใน studentsList
+                db.ref("studentsList/" + id).once("value").then(snapshot => {
+                    if (snapshot.exists()) {
+                        const name = snapshot.val();
+                        const timestamp = new Date().toISOString();
+        
+                        db.ref("registrations/" + id).set({
+                            name: name,
+                            registeredAt: timestamp
+                        }).then(() => {
+                            statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ: ${name}</span>`;
+                            document.getElementById("studentId").value = "";
+                        });
+                    } else {
+                        statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+                    }
+                });
             }).catch(error => {
                 statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
             });
         }
+
     </script>
 </body>
 
