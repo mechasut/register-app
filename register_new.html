@@ -52,6 +52,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    window.onload = () => {
+      const inputs = document.querySelectorAll("input");
+      inputs[0].focus(); // focus ที่ช่อง studentId
+    
+      inputs.forEach(input => {
+        input.addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            submitNewStudent();
+          }
+        });
+      });
+    };
+
     function submitNewStudent() {
       const id = document.getElementById("studentId").value.trim();
       const first = document.getElementById("firstName").value.trim();
