@@ -163,7 +163,11 @@
             };
 
             db.ref(path + "/" + id).set(dataToSave).then(() => {
-              statusDiv.innerHTML = `<span style="color:green">✔ ลงทะเบียนสำเร็จ<br><strong>${fullName}</strong></span>`;
+              const message = status
+                    ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
+                    : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
+                const color = status ? "green" : "orange";
+              statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong></span>`;
               document.getElementById("studentId").value = "";
               document.getElementById("studentId").focus();
             });
