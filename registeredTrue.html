@@ -181,7 +181,8 @@
                     db.ref("registeredTrue").remove()
                         .then(() => {
                             alert("✅ ลบข้อมูลทั้งหมดสำเร็จ");
-                            location.reload();
+                            const rows = document.querySelectorAll("#studentTable tbody tr");
+                            rows.forEach(row => row.remove());
                         })
                         .catch(err => {
                             alert("❌ ลบไม่สำเร็จ: " + err.message);
