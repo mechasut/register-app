@@ -162,7 +162,7 @@
             }
 
             if (confirm(`คุณแน่ใจหรือไม่ ว่าจะลบ ID: ${id} ?`)) {
-                db.ref("registrations/" + id).remove()
+                db.ref("registeredTrue/" + id).remove()
                     .then(() => {
                         alert("✅ ลบข้อมูลเรียบร้อย");
                         const row = button.closest("tr");
@@ -178,7 +178,7 @@
             const code = prompt("⚠️ ต้องการลบข้อมูลทั้งหมด\nกรุณาพิมพ์คำว่า DELETE เพื่อยืนยัน:");
             if (code === "DELETE") {
                 if (confirm("คุณแน่ใจหรือไม่ ว่าต้องการลบข้อมูลนักศึกษาทั้งหมด?")) {
-                    db.ref("registrations").remove()
+                    db.ref("registeredTrue").remove()
                         .then(() => {
                             alert("✅ ลบข้อมูลทั้งหมดสำเร็จ");
                             location.reload();
@@ -207,7 +207,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "registrations.csv";
+            a.download = "registeredTrue.csv";
             a.click();
             URL.revokeObjectURL(url);
         }
