@@ -132,14 +132,14 @@
     function submitId() {
       const id = document.getElementById("studentId").value.trim();
       const statusDiv = document.getElementById("status");
-
+    
       if (!id) {
         statusDiv.innerHTML = `<span style="color:red">❗ กรุณากรอก Student ID</span>`;
         return;
       }
-
+    
       statusDiv.innerHTML = "⏳ กำลังตรวจสอบ...";
-
+    
       db.ref("registrations/" + id).once("value").then(regSnap => {
         if (regSnap.exists()) {
           const data = regSnap.val();
@@ -147,27 +147,33 @@
           statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนไปแล้ว<br><strong>${name}</strong></span>`;
           return;
         }
-
+    
         db.ref("studentListNewFormat/" + id).once("value").then(snapshot => {
           if (snapshot.exists()) {
             const student = snapshot.val();
             const fullName = student.name || "ไม่ทราบชื่อ";
             const status = student.status === true || student.status === "true";
+            const course = student.course || "ไม่ระบุหลักสูตร";
             const timestamp = new Date().toISOString();
-
+    
             const path = status ? "registeredTrue" : "registeredFalse";
-
+    
             const dataToSave = {
-                name: fullName,
-                registeredAt: timestamp
+              name: fullName,
+              registeredAt: timestamp
             };
-
+    
             db.ref(path + "/" + id).set(dataToSave).then(() => {
               const message = status
-                    ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
-                    : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
-                const color = status ? "green" : "orange";
-              statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong></span>`;
+                ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
+                : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
+              const color = status ? "green" : "orange";
+              statusDiv.innerHTML = `
+                <span style="color:${color}">
+                  ${message}<br>
+                  <strong>${fullName}</strong><br>
+                  <span style="font-size:18px;">หลักสูตร: ${course}</span>
+                </span>`;
               document.getElementById("studentId").value = "";
               document.getElementById("studentId").focus();
             });
@@ -179,6 +185,7 @@
         statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
       });
     }
+
   </script>
 </body>
 </html>
