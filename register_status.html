@@ -157,10 +157,11 @@
             const timestamp = new Date().toISOString();
     
             const path = status ? "registeredTrue" : "registeredFalse";
-    
+            
             const dataToSave = {
               name: fullName,
-              registeredAt: timestamp
+              registeredAt: timestamp,
+              course: course       // ⬅️ เพิ่มการบันทึก
             };
     
             db.ref(path + "/" + id).set(dataToSave).then(() => {
@@ -168,12 +169,13 @@
                 ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
                 : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
               const color = status ? "green" : "orange";
-              statusDiv.innerHTML = `
-                <span style="color:${color}">
-                  ${message}<br>
-                  <strong>${fullName}</strong><br>
-                  <span style="font-size:22px;">หลักสูตร: ${course}</span>
-                </span>`;
+              // statusDiv.innerHTML = `
+              //   <span style="color:${color}">
+              //     ${message}<br>
+              //     <strong>${fullName}</strong><br>
+              //     <span style="font-size:22px;">หลักสูตร: ${course}</span>
+              //   </span>`;
+              statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
               document.getElementById("studentId").value = "";
               document.getElementById("studentId").focus();
             });
