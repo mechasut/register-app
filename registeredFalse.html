@@ -102,12 +102,13 @@
 
     <table id="studentTable">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>ชื่อ</th>
-                <th>เวลาที่ลงทะเบียน</th>
-                <th>การจัดการ</th>
-            </tr>
+          <tr>
+            <th>ID</th>
+            <th>ชื่อ</th>
+            <th>สาขา</th> <!-- เพิ่มคอลัมน์ -->
+            <th>เวลาที่ลงทะเบียน</th>
+            <th>การจัดการ</th>
+          </tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -135,13 +136,22 @@
             const id = snapshot.key;
             const data = snapshot.val();
 
+      //       const tr = document.createElement("tr");
+      //       tr.innerHTML = `
+      //   <td>${id}</td>
+      //   <td>${data.name}</td>
+      //   <td>${formatDateTime(data.registeredAt)}</td>
+      //   <td><button class="delete" onclick="deleteById('${id}', this)">ลบ</button></td>
+      // `;
+
             const tr = document.createElement("tr");
             tr.innerHTML = `
-        <td>${id}</td>
-        <td>${data.name}</td>
-        <td>${formatDateTime(data.registeredAt)}</td>
-        <td><button class="delete" onclick="deleteById('${id}', this)">ลบ</button></td>
-      `;
+              <td>${id}</td>
+              <td>${data.name}</td>
+              <td>${data.course || "-"}</td>
+              <td>${formatDateTime(data.registeredAt)}</td>
+              <td><button class="delete" onclick="deleteById('${id}', this)">ลบ</button></td>
+            `;
             tbody.appendChild(tr);
         });
 
@@ -192,12 +202,19 @@
         }
 
         function downloadCSV() {
-            let csv = "ID,Name,RegisteredAt\n";
+            // let csv = "ID,Name,RegisteredAt\n";
+            // const rows = tbody.querySelectorAll("tr");
+            // rows.forEach(row => {
+            //     const cells = row.querySelectorAll("td");
+            //     const rowText = Array.from(cells).slice(0, 3).map(td => `"${td.innerText}"`).join(",");
+            //     csv += rowText + "\n";
+            // });
+            let csv = "ID,Name,Course,RegisteredAt\n"; // เพิ่ม Course
             const rows = tbody.querySelectorAll("tr");
             rows.forEach(row => {
-                const cells = row.querySelectorAll("td");
-                const rowText = Array.from(cells).slice(0, 3).map(td => `"${td.innerText}"`).join(",");
-                csv += rowText + "\n";
+              const cells = row.querySelectorAll("td");
+              const rowText = Array.from(cells).slice(0, 4).map(td => `"${td.innerText}"`).join(",");
+              csv += rowText + "\n";
             });
 
             const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
