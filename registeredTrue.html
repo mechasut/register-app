@@ -103,13 +103,13 @@
 
     <table id="studentTable">
         <thead>
-              <tr>
-                <th>ID</th>
-                <th>ชื่อ</th>
-                <th>สาขา</th> 
-                <th>เวลาที่ลงทะเบียน</th>
-                <th>การจัดการ</th>
-              </tr>
+          <tr>
+            <th onclick="sortTable(0)">ID</th>
+            <th onclick="sortTable(1)">ชื่อ</th>
+            <th onclick="sortTable(2)">สาขา</th>
+            <th onclick="sortTable(3)">เวลาที่ลงทะเบียน</th>
+            <th>การจัดการ</th>
+          </tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -227,6 +227,39 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById("studentTable");
+            const rows = Array.from(table.rows).slice(1); // exclude the header row
+        
+            let sorted = false;
+            let asc = table.getAttribute("data-sort-dir") !== "asc"; // toggle direction
+        
+            rows.sort((a, b) => {
+                let aText = a.cells[columnIndex].innerText.trim();
+                let bText = b.cells[columnIndex].innerText.trim();
+        
+                // แปลงเวลาถ้าเป็นคอลัมน์วันที่
+                if (columnIndex === 3) {
+                    aText = new Date(aText).getTime();
+                    bText = new Date(bText).getTime();
+                }
+        
+                // แปลงเป็นตัวเลขถ้าเป็นคอลัมน์ ID
+                if (columnIndex === 0) {
+                    aText = parseInt(aText);
+                    bText = parseInt(bText);
+                }
+        
+                return asc ? (aText > bText ? 1 : -1) : (aText < bText ? 1 : -1);
+            });
+        
+            table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+        
+            const tbody = table.tBodies[0];
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
     </script>
 </body>
 
