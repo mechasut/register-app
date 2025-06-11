@@ -148,45 +148,60 @@
           return;
         }
     
-        db.ref("studentListNewFormat/" + id).once("value").then(snapshot => {
-          if (snapshot.exists()) {
-            const student = snapshot.val();
-            const fullName = student.name || "ไม่ทราบชื่อ";
-            const status = student.status === true || student.status === "true";
-            const course = student.course || "ไม่ระบุหลักสูตร";
-            const timestamp = new Date().toISOString();
+        const coursePaths = [
+          { course: "Automotive", path: "studentListNewFormat/Automotive/" },
+          { course: "Mechatronics-2Y", path: "studentListNewFormat/Mechatronics/2Y/" },
+          { course: "Mechatronics-4Y", path: "studentListNewFormat/Mechatronics/4Y/" }
+        ];
     
-            const path = status ? "registeredTrue" : "registeredFalse";
-            
-            const dataToSave = {
-              name: fullName,
-              registeredAt: timestamp,
-              course: course       // ⬅️ เพิ่มการบันทึก
-            };
+        let found = false;
     
-            db.ref(path + "/" + id).set(dataToSave).then(() => {
-              const message = status
-                ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
-                : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
-              const color = status ? "green" : "orange";
-              // statusDiv.innerHTML = `
-              //   <span style="color:${color}">
-              //     ${message}<br>
-              //     <strong>${fullName}</strong><br>
-              //     <span style="font-size:22px;">หลักสูตร: ${course}</span>
-              //   </span>`;
-              statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
-              document.getElementById("studentId").value = "";
-              document.getElementById("studentId").focus();
-            });
-          } else {
+        const checkNext = (index) => {
+          if (index >= coursePaths.length) {
             statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบรหัสนี้ในระบบ</span>`;
+            return;
           }
-        });
+    
+          const { course, path } = coursePaths[index];
+    
+          db.ref(path + id).once("value").then(snapshot => {
+            if (snapshot.exists()) {
+              const student = snapshot.val();
+              const fullName = student.name || "ไม่ทราบชื่อ";
+              const status = student.status === true || student.status === "true";
+              const timestamp = new Date().toISOString();
+    
+              const pathToSave = status ? "registeredTrue" : "registeredFalse";
+              const dataToSave = {
+                name: fullName,
+                registeredAt: timestamp,
+                course: course
+              };
+    
+              db.ref(pathToSave + "/" + id).set(dataToSave).then(() => {
+                const message = status
+                  ? "✔ ยืนยันสำเร็จ ลงทะเบียนแล้ว"
+                  : "✔ ยืนยันสำเร็จ แต่ไม่ได้ลงทะเบียนมา";
+                const color = status ? "green" : "orange";
+    
+                statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
+                document.getElementById("studentId").value = "";
+                document.getElementById("studentId").focus();
+              });
+    
+              found = true;
+            } else {
+              checkNext(index + 1); // ถ้ายังไม่เจอ ไป path ถัดไป
+            }
+          });
+        };
+    
+        checkNext(0); // เริ่มตรวจ path แรก
       }).catch(error => {
         statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
       });
     }
+
 
   </script>
 </body>
