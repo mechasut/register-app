@@ -90,6 +90,12 @@
             font-size: 40px;
             color: #2196f3;
         }
+
+        .sort-icon {
+          font-size: 14px;
+          margin-left: 6px;
+          color: #888;
+        }
     </style>
 </head>
 
@@ -104,10 +110,10 @@
     <table id="studentTable">
         <thead>
           <tr>
-            <th onclick="sortTable(0)">ID</th>
-            <th onclick="sortTable(1)">ชื่อ</th>
-            <th onclick="sortTable(2)">สาขา</th>
-            <th onclick="sortTable(3)">เวลาที่ลงทะเบียน</th>
+            <th onclick="sortTable(0, this)">ID <span class="sort-icon"></span></th>
+            <th onclick="sortTable(1, this)">ชื่อ <span class="sort-icon"></span></th>
+            <th onclick="sortTable(2, this)">สาขา <span class="sort-icon"></span></th>
+            <th onclick="sortTable(3, this)">เวลาที่ลงทะเบียน <span class="sort-icon"></span></th>
             <th>การจัดการ</th>
           </tr>
         </thead>
@@ -228,37 +234,44 @@
             URL.revokeObjectURL(url);
         }
 
-        function sortTable(columnIndex) {
-            const table = document.getElementById("studentTable");
-            const rows = Array.from(table.rows).slice(1); // exclude the header row
+        function sortTable(columnIndex, th) {
+          const table = document.getElementById("studentTable");
+          const rows = Array.from(table.rows).slice(1); // exclude header
+          const currentDir = th.getAttribute("data-sort-dir") || "asc";
+          const asc = currentDir === "desc"; // toggle
         
-            let sorted = false;
-            let asc = table.getAttribute("data-sort-dir") !== "asc"; // toggle direction
+          // reset icons
+          document.querySelectorAll(".sort-icon").forEach(el => el.innerHTML = "");
+          document.querySelectorAll("th").forEach(el => el.removeAttribute("data-sort-dir"));
         
-            rows.sort((a, b) => {
-                let aText = a.cells[columnIndex].innerText.trim();
-                let bText = b.cells[columnIndex].innerText.trim();
+          // set icon
+          const icon = th.querySelector(".sort-icon");
+          icon.innerHTML = asc ? "↑" : "↓";
+          th.setAttribute("data-sort-dir", asc ? "asc" : "desc");
         
-                // แปลงเวลาถ้าเป็นคอลัมน์วันที่
-                if (columnIndex === 3) {
-                    aText = new Date(aText).getTime();
-                    bText = new Date(bText).getTime();
-                }
+          // sort
+          rows.sort((a, b) => {
+            let aText = a.cells[columnIndex].innerText.trim();
+            let bText = b.cells[columnIndex].innerText.trim();
         
-                // แปลงเป็นตัวเลขถ้าเป็นคอลัมน์ ID
-                if (columnIndex === 0) {
-                    aText = parseInt(aText);
-                    bText = parseInt(bText);
-                }
+            if (columnIndex === 3) {
+              aText = new Date(aText).getTime();
+              bText = new Date(bText).getTime();
+            }
         
-                return asc ? (aText > bText ? 1 : -1) : (aText < bText ? 1 : -1);
-            });
+            if (columnIndex === 0) {
+              aText = parseInt(aText);
+              bText = parseInt(bText);
+            }
         
-            table.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+            return asc ? aText > bText ? 1 : -1 : aText < bText ? 1 : -1;
+          });
         
-            const tbody = table.tBodies[0];
-            rows.forEach(row => tbody.appendChild(row));
+          // re-append
+          const tbody = table.tBodies[0];
+          rows.forEach(row => tbody.appendChild(row));
         }
+
 
     </script>
 </body>
