@@ -105,6 +105,8 @@
     <div class="button-group">
         <button class="btn btn-export" onclick="downloadCSV()">⬇ Export เป็น CSV</button>
         <button class="btn btn-delete-all" onclick="confirmDeleteAll()">🗑 ลบข้อมูลทั้งหมด</button>
+        <br><br>
+          <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" style="padding: 10px; width: 300px; border-radius: 6px; font-size: 16px;" />
     </div>
 
     <table id="studentTable">
@@ -272,6 +274,25 @@
           rows.forEach(row => tbody.appendChild(row));
         }
 
+        function searchTable() {
+          const input = document.getElementById("searchInput").value.toLowerCase();
+          const table = document.getElementById("studentTable");
+          const tr = table.getElementsByTagName("tr");
+        
+          for (let i = 1; i < tr.length; i++) { // ข้าม header
+            const tds = tr[i].getElementsByTagName("td");
+            let match = false;
+        
+            for (let j = 0; j < 3; j++) { // ค้นหาเฉพาะคอลัมน์ ID, ชื่อ, สาขา
+              if (tds[j] && tds[j].innerText.toLowerCase().includes(input)) {
+                match = true;
+                break;
+              }
+            }
+        
+            tr[i].style.display = match ? "" : "none";
+          }
+        }
 
     </script>
 </body>
