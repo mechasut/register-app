@@ -153,35 +153,53 @@
       ? `studentListNewFormat/${course}/${subcourse}/${id}`
       : `studentListNewFormat/${course}/${id}`;
 
-    db.ref(studentPath).once("value").then(snapshot => {
-      if (!snapshot.exists()) {
-        statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบข้อมูลนักศึกษา</span>`;
-        return;
-      }
+    db.ref("registeredTrue/" + id).once("value").then(rtSnap => {
+          if (rtSnap.exists()) {
+            statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนแล้ว<br><strong>${rtSnap.val().name}</strong></span>`;
+            return;
+          }
 
-      const student = snapshot.val();
-      const fullName = student.name || "ไม่ทราบชื่อ";
-      const status = student.status === true || student.status === "true";
-      const timestamp = new Date().toISOString();
-      const path = status ? "registeredTrue" : "registeredFalse";
+          db.ref("registeredFalse/" + id).once("value").then(rfSnap => {
+            if (rfSnap.exists()) {
+              statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้เคยตรวจสอบแล้ว (ไม่ได้ลงทะเบียนกิจกรรม)<br><strong>${rfSnap.val().name}</strong></span>`;
+              return;
+            }
 
-      const dataToSave = {
-        name: fullName,
-        registeredAt: timestamp,
-        course: course
-      };
+            // ยังไม่เคยลงทะเบียน → ตรวจสอบข้อมูลหลัก
+            db.ref(studentPath).once("value").then(snapshot => {
+              if (!snapshot.exists()) {
+                statusDiv.innerHTML = `<span style="color:red">❌ ไม่พบข้อมูลนักศึกษา</span>`;
+                return;
+              }
 
-      db.ref(path + "/" + id).set(dataToSave).then(() => {
-        const message = status
-          ? "✔ ยืนยันสำเร็จ ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ"
-          : "✔ ยืนยันสำเร็จ ไม่ได้ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ";
-        const color = status ? "green" : "orange";
+              const student = snapshot.val();
+              const fullName = student.name || "ไม่ทราบชื่อ";
+              const status = student.status === true || student.status === "true";
+              const timestamp = new Date().toISOString();
+              const path = status ? "registeredTrue" : "registeredFalse";
 
-        statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
-        document.getElementById("studentId").value = "";
-        document.getElementById("studentId").focus();
-      });
-    });
+              const dataToSave = {
+                name: fullName,
+                registeredAt: timestamp,
+                course: course
+              };
+
+              db.ref(path + "/" + id).set(dataToSave).then(() => {
+                const message = status
+                  ? "✔ ยืนยันสำเร็จ ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ"
+                  : "✔ ยืนยันสำเร็จ ไม่ได้ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ";
+                const color = status ? "green" : "orange";
+
+                statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
+                document.getElementById("studentId").value = "";
+                document.getElementById("studentId").focus();
+              });
+
+            });
+
+          });
+
+        });
   }).catch(error => {
     statusDiv.innerHTML = `<span style="color:red">⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
   });
