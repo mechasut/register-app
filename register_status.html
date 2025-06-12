@@ -186,8 +186,8 @@
 
               db.ref(path + "/" + id).set(dataToSave).then(() => {
                 const message = status
-                  ? "✔ ยืนยันสำเร็จ ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ"
-                  : "✔ ยืนยันสำเร็จ ไม่ได้ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ";
+                  ? "✔ ยืนยันสำเร็จ<br>ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ"
+                  : "✔ ยืนยันสำเร็จ<br>ไม่ได้ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ";
                 const color = status ? "green" : "orange";
 
                 statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
