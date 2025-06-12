@@ -155,13 +155,13 @@
 
     db.ref("registeredTrue/" + id).once("value").then(rtSnap => {
           if (rtSnap.exists()) {
-            statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้ลงทะเบียนแล้ว<br><strong>${rtSnap.val().name}</strong></span>`;
+            statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้เคยยืนยันแล้ว<br><strong>${rtSnap.val().name}</strong></span>`;
             return;
           }
 
           db.ref("registeredFalse/" + id).once("value").then(rfSnap => {
             if (rfSnap.exists()) {
-              statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้เคยตรวจสอบแล้ว (ไม่ได้ลงทะเบียนกิจกรรม)<br><strong>${rfSnap.val().name}</strong></span>`;
+              statusDiv.innerHTML = `<span style="color:orange">⚠️ รหัสนี้เคยยืนยันแล้ว (ไม่ได้ลงทะเบียนกิจกรรม)<br><strong>${rfSnap.val().name}</strong></span>`;
               return;
             }
 
