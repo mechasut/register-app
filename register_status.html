@@ -179,19 +179,26 @@
               const timestamp = new Date().toISOString();
               const path = status ? "registeredTrue" : "registeredFalse";
 
+              const fullCourseName = subcourse ? `${course} ${subcourse}` : course;
               const dataToSave = {
                 name: fullName,
                 registeredAt: timestamp,
-                course: course
+                course: fullCourseName
               };
-
+              
               db.ref(path + "/" + id).set(dataToSave).then(() => {
                 const message = status
                   ? "✔ ยืนยันสำเร็จ<br>ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ"
                   : "✔ ยืนยันสำเร็จ<br>ไม่ได้ลงทะเบียนเข้าร่วมกิจกรรมปฐมนิเทศ";
                 const color = status ? "green" : "orange";
-
-                statusDiv.innerHTML = `<span style="color:${color}">${message}<br><strong>${fullName}</strong><br>${course}</span>`;
+              
+                statusDiv.innerHTML = `
+                  <span style="color:${color}">
+                    ${message}<br>
+                    <strong>${fullName}</strong><br>
+                    ${fullCourseName}
+                  </span>`;
+              
                 document.getElementById("studentId").value = "";
                 document.getElementById("studentId").focus();
               });
