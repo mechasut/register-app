@@ -163,11 +163,13 @@ function loadData() {
   db.ref(refPath).off();
 
   db.ref(refPath).on("child_added", (child) => {
-    const id = child.key;
-    const data = child.val();
-    const tr = document.createElement("tr");
-    const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
-    tr.innerHTML = `
+  const id = child.key;
+  const data = child.val();
+  const tr = document.createElement("tr");
+  tr.setAttribute("data-timestamp", data.timestamp); // เพิ่มไว้ใน <tr>
+
+  const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
+  tr.innerHTML = `
       <td>${id}</td>
       <td>${data.name}</td>
       <td>${courseFull}</td>
@@ -177,8 +179,6 @@ function loadData() {
     tbody.appendChild(tr);
   });
 }
-
-
 
     function deleteById(day, id, button) {
       if (confirm(`ยืนยันลบ ID: ${id} ของวันที่ ${day} ?`)) {
@@ -235,8 +235,8 @@ function loadData() {
         let bText = b.cells[columnIndex].innerText.trim();
 
         if (columnIndex === 3) {
-          aText = new Date(aText).getTime();
-          bText = new Date(bText).getTime();
+          aText = new Date(a.getAttribute("data-timestamp")).getTime();
+          bText = new Date(b.getAttribute("data-timestamp")).getTime();
         }
         if (columnIndex === 0) {
           aText = parseInt(aText);
