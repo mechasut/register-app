@@ -200,4 +200,67 @@
         const rowText = Array.from(cells).slice(0, 4).map(td => `"${td.innerText}"`).join(",");
         csv += rowText + "\n";
       });
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/cs
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `marathon_${document.getElementById("daySelect").value}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function sortTable(columnIndex, th) {
+      const table = document.getElementById("studentTable");
+      const rows = Array.from(table.rows).slice(1);
+      const currentDir = th.getAttribute("data-sort-dir") || "asc";
+      const asc = currentDir === "desc";
+
+      document.querySelectorAll(".sort-icon").forEach(el => el.innerHTML = "");
+      document.querySelectorAll("th").forEach(el => el.removeAttribute("data-sort-dir"));
+
+      const icon = th.querySelector(".sort-icon");
+      icon.innerHTML = asc ? "↑" : "↓";
+      th.setAttribute("data-sort-dir", asc ? "asc" : "desc");
+
+      rows.sort((a, b) => {
+        let aText = a.cells[columnIndex].innerText.trim();
+        let bText = b.cells[columnIndex].innerText.trim();
+
+        if (columnIndex === 3) {
+          aText = new Date(aText).getTime();
+          bText = new Date(bText).getTime();
+        }
+        if (columnIndex === 0) {
+          aText = parseInt(aText);
+          bText = parseInt(bText);
+        }
+
+        return asc ? aText > bText ? 1 : -1 : aText < bText ? 1 : -1;
+      });
+
+      const tbody = table.tBodies[0];
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function searchTable() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const table = document.getElementById("studentTable");
+      const tr = table.getElementsByTagName("tr");
+
+      for (let i = 1; i < tr.length; i++) {
+        const tds = tr[i].getElementsByTagName("td");
+        let match = false;
+        for (let j = 0; j < 3; j++) {
+          if (tds[j] && tds[j].innerText.toLowerCase().includes(input)) {
+            match = true;
+            break;
+          }
+        }
+        tr[i].style.display = match ? "" : "none";
+      }
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
