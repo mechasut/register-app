@@ -143,15 +143,24 @@
 
       // ดึงวันที่ (16–20 มิ.ย. 2568)
       const now = new Date();
-      const day = now.getDate(); // เช่น 16
-      const allowedDays = [15, 16, 17, 18, 19, 20];
-
-      if (!allowedDays.includes(day)) {
-        statusDiv.innerHTML = `<span style="color:orange">⚠️ ระบบลงทะเบียนเปิดเฉพาะวันที่ 16-20 มิ.ย. 2568 เท่านั้น</span>`;
+      const localDate = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // เวลาไทย UTC+7
+      const dateStr = localDate.toISOString().split("T")[0]; // YYYY-MM-DD เช่น 2025-06-15
+      
+      const allowedDates = [
+        "2025-06-15",
+        "2025-06-16",
+        "2025-06-17",
+        "2025-06-18",
+        "2025-06-19",
+        "2025-06-20"
+      ];
+      
+      if (!allowedDates.includes(dateStr)) {
+        statusDiv.innerHTML = `<span style="color:orange">⚠️ ระบบลงทะเบียนเปิดเฉพาะวันที่ 15-20 มิ.ย. 2568 เท่านั้น</span>`;
         return;
       }
-
-      const dayPath = `marathon/${day}/${id}`;
+      
+      const dayPath = `marathon/${dateStr}/${id}`;
 
       db.ref("idIndex/" + id).once("value").then(indexSnap => {
         if (!indexSnap.exists()) {
