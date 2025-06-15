@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ลงทะเบียนกิจกรรมมาราธอน</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #ffffff 0%, #eeeeee 50%, #dddddd 80%, #cccccc 100%);
+      padding: 30px;
+      margin: 0;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .button-group {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.2s ease;
+    }
+
+    .btn-export {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    .btn-delete-all {
+      background-color: #f44336;
+      color: white;
+    }
+
+    select {
+      font-size: 16px;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 300px;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f5f5f5;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .delete {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .sort-icon {
+      font-size: 14px;
+      margin-left: 6px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>รายชื่อนักศึกษาที่เข้าร่วมกิจกรรมมาราธอน</h2>
+
+  <div class="button-group">
+    <label>เลือกวันที่:</label>
+    <select id="daySelect" onchange="loadData()">
+      <option value="2025-06-16">16 มิ.ย. 2568</option>
+      <option value="2025-06-17">17 มิ.ย. 2568</option>
+      <option value="2025-06-18">18 มิ.ย. 2568</option>
+      <option value="2025-06-19">19 มิ.ย. 2568</option>
+      <option value="2025-06-20">20 มิ.ย. 2568</option>
+    </select>
+    <button class="btn btn-export" onclick="downloadCSV()">⬇ Export เป็น CSV</button>
+    <button class="btn btn-delete-all" onclick="confirmDeleteAll()">🗑 ลบข้อมูลทั้งหมดของวัน</button>
+    <br><br>
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" />
+  </div>
+
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0, this)">ID <span class="sort-icon"></span></th>
+        <th onclick="sortTable(1, this)">ชื่อ <span class="sort-icon"></span></th>
+        <th onclick="sortTable(2, this)">สาขา <span class="sort-icon"></span></th>
+        <th onclick="sortTable(3, this)">เวลาที่ลงทะเบียน <span class="sort-icon"></span></th>
+        <th>การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDteqEJH-VOPTk1PlATSAHHFLOfREEVgn4",
+      authDomain: "mexregister-9a132.firebaseapp.com",
+      databaseURL: "https://mexregister-9a132-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mexregister-9a132",
+      storageBucket: "mexregister-9a132.appspot.com",
+      messagingSenderId: "1094324636464",
+      appId: "1:1094324636464:web:d0349da84d0765106116f5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const tbody = document.querySelector("#studentTable tbody");
+
+    function loadData() {
+      const selectedDay = document.getElementById("daySelect").value;
+      tbody.innerHTML = "";
+
+      db.ref("marathon/" + selectedDay).once("value", snapshot => {
+        snapshot.forEach(child => {
+          const id = child.key;
+          const data = child.val();
+          const tr = document.createElement("tr");
+          const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
+          tr.innerHTML = `
+            <td>${id}</td>
+            <td>${data.name}</td>
+            <td>${courseFull}</td>
+            <td>${formatDateTime(data.registeredAt)}</td>
+            <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function formatDateTime(isoStr) {
+      const dt = new Date(isoStr);
+      return dt.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
+    }
+
+    function deleteById(day, id, button) {
+      if (confirm(`ยืนยันลบ ID: ${id} ของวันที่ ${day} ?`)) {
+        db.ref(`marathon/${day}/${id}`).remove().then(() => {
+          button.closest("tr").remove();
+          alert("✅ ลบเรียบร้อย");
+        });
+      }
+    }
+
+    function confirmDeleteAll() {
+      const day = document.getElementById("daySelect").value;
+      const code = prompt(`⚠️ ลบข้อมูลทั้งหมดของวันที่ ${day}?\nพิมพ์ DELETE เพื่อยืนยัน`);
+      if (code === "DELETE") {
+        db.ref("marathon/" + day).remove().then(() => {
+          alert("✅ ลบทั้งหมดสำเร็จ");
+          loadData();
+        });
+      }
+    }
+
+    function downloadCSV() {
+      let csv = "ID,Name,Course,RegisteredAt\n";
+      const rows = tbody.querySelectorAll("tr");
+      rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        const rowText = Array.from(cells).slice(0, 4).map(td => `"${td.innerText}"`).join(",");
+        csv += rowText + "\n";
+      });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/cs
