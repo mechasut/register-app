@@ -150,28 +150,35 @@
       const selectedDay = document.getElementById("daySelect").value;
       tbody.innerHTML = "";
 
-      db.ref("marathon/" + selectedDay).once("value", snapshot => {
-        snapshot.forEach(child => {
-          const id = child.key;
-          const data = child.val();
-          const tr = document.createElement("tr");
-          const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
-          tr.innerHTML = `
-            <td>${id}</td>
-            <td>${data.name}</td>
-            <td>${courseFull}</td>
-            <td>${formatDateTime(data.registeredAt)}</td>
-            <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
-          `;
-          tbody.appendChild(tr);
-        });
+      const refPath = "marathon/" + selectedDay;
+      db.ref(refPath).off(); // ล้าง listener เก่า
+      
+      tbody.innerHTML = ""; // ล้างตารางก่อน
+      
+      db.ref(refPath).on("child_added", (child) => {
+        const id = child.key;
+        const data = child.val();
+        const tr = document.createElement("tr");
+        const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${data.name}</td>
+          <td>${courseFull}</td>
+          <td>${formatDateTime(data.timestamp)}</td>
+          <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
+        `;
+        tbody.appendChild(tr);
       });
-    }
 
     function formatDateTime(isoStr) {
-      const dt = new Date(isoStr);
-      return dt.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
-    }
+    if (!isoStr) return "-";
+    const dt = new Date(isoStr);
+    return isNaN(dt.getTime()) ? "-" : dt.toLocaleString("th-TH", {
+      dateStyle: "short",
+      timeStyle: "medium"
+    });
+  }
+
 
     function deleteById(day, id, button) {
       if (confirm(`ยืนยันลบ ID: ${id} ของวันที่ ${day} ?`)) {
