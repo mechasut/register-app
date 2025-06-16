@@ -113,6 +113,7 @@
     <button class="btn btn-delete-all" onclick="confirmDeleteAll()">🗑 ลบข้อมูลทั้งหมดของวัน</button>
     <br><br>
     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" />
+    <span id="countDisplay" style="float: right; font-weight: bold; margin-right: 40px; font-size: 18px;">จำนวนทั้งหมด: 0 คน</span>
   </div>
 
   <table id="studentTable">
@@ -267,6 +268,37 @@ function loadData() {
         tr[i].style.display = match ? "" : "none";
       }
     }
+
+    function loadData() {
+      const selectedDay = document.getElementById("daySelect").value;
+      const refPath = "marathon/" + selectedDay;
+      tbody.innerHTML = "";
+      db.ref(refPath).off();
+    
+      let count = 0; // 👈 ตัวนับ
+      document.getElementById("countDisplay").innerText = "จำนวนทั้งหมด: 0 คน";
+    
+      db.ref(refPath).on("child_added", (child) => {
+        const id = child.key;
+        const data = child.val();
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-timestamp", data.timestamp);
+    
+        const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${data.name}</td>
+          <td>${courseFull}</td>
+          <td>${formatDateTime(data.timestamp)}</td>
+          <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
+        `;
+        tbody.appendChild(tr);
+    
+        count++;
+        document.getElementById("countDisplay").innerText = `จำนวนทั้งหมด: ${count} คน`;
+      });
+    }
+
 
     window.onload = loadData;
   </script>
