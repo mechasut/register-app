@@ -113,7 +113,7 @@
     <button class="btn btn-delete-all" onclick="confirmDeleteAll()">🗑 ลบข้อมูลทั้งหมดของวัน</button>
     <br><br>
     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" />
-    <span id="countDisplay" style="float: right; font-weight: bold; margin-right: 40px; font-size: 18px;">จำนวนทั้งหมด: 0 คน</span>
+<!--     <span id="countDisplay" style="float: right; font-weight: bold; margin-right: 40px; font-size: 18px;">จำนวนทั้งหมด: 0 คน</span> -->
     <div id="summary" style="text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
   </div>
 
@@ -308,15 +308,13 @@ function loadData() {
     tbody.appendChild(tr);
 
     // แสดงผลจำนวนรวมทุกกลุ่ม
-    summaryEl.innerHTML = `
-      <div>
-        จำนวนทั้งหมด: ${counters.total} คน<br>
-        - Mechatronics 2Y: ${counters["Mechatronics 2Y"]} คน<br>
-        - Mechatronics 4Y: ${counters["Mechatronics 4Y"]} คน<br>
-        - Modern Automotive 2Y: ${counters["Modern Automotive 2Y"]} คน<br>
-        - Modern Automotive 4Y: ${counters["Modern Automotive 4Y"]} คน
-      </div>
-    `;
+    summaryEl.innerHTML = `<pre style="text-align: right; font-size: 18px; font-weight: bold;">
+      จำนวนทั้งหมด: ${counters.total} คน
+      - ${"Mechatronics 2Y".padEnd(22)}: ${String(counters["Mechatronics 2Y"]).padStart(2)} คน
+      - ${"Mechatronics 4Y".padEnd(22)}: ${String(counters["Mechatronics 4Y"]).padStart(2)} คน
+      - ${"Modern Automotive 2Y".padEnd(22)}: ${String(counters["Modern Automotive 2Y"]).padStart(2)} คน
+      - ${"Modern Automotive 4Y".padEnd(22)}: ${String(counters["Modern Automotive 4Y"]).padStart(2)} คน
+      </pre>`;
   });
 }
 
