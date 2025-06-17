@@ -114,6 +114,7 @@
     <br><br>
     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" />
     <span id="countDisplay" style="float: right; font-weight: bold; margin-right: 40px; font-size: 18px;">จำนวนทั้งหมด: 0 คน</span>
+    <div id="summary" style="text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
   </div>
 
   <table id="studentTable">
@@ -270,34 +271,55 @@ function loadData() {
     }
 
     function loadData() {
-      const selectedDay = document.getElementById("daySelect").value;
-      const refPath = "marathon/" + selectedDay;
-      tbody.innerHTML = "";
-      db.ref(refPath).off();
-    
-      let count = 0; // 👈 ตัวนับ
-      document.getElementById("countDisplay").innerText = "จำนวนทั้งหมด: 0 คน";
-    
-      db.ref(refPath).on("child_added", (child) => {
-        const id = child.key;
-        const data = child.val();
-        const tr = document.createElement("tr");
-        tr.setAttribute("data-timestamp", data.timestamp);
-    
-        const courseFull = data.subcourse ? `${data.course} ${data.subcourse}` : data.course;
-        tr.innerHTML = `
-          <td>${id}</td>
-          <td>${data.name}</td>
-          <td>${courseFull}</td>
-          <td>${formatDateTime(data.timestamp)}</td>
-          <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
-        `;
-        tbody.appendChild(tr);
-    
-        count++;
-        document.getElementById("countDisplay").innerText = `จำนวนทั้งหมด: ${count} คน`;
-      });
+  const selectedDay = document.getElementById("daySelect").value;
+  const refPath = "marathon/" + selectedDay;
+  const summaryEl = document.getElementById("summary");
+  tbody.innerHTML = "";
+  db.ref(refPath).off();
+
+  // เคลียร์ข้อมูลก่อนเริ่มใหม่
+  const counters = {
+    "Mechatronics 2Y": 0,
+    "Mechatronics 4Y": 0,
+    "Modern Automotive 2Y": 0,
+    "Modern Automotive 4Y": 0,
+    "total": 0
+  };
+
+  db.ref(refPath).on("child_added", (child) => {
+    const id = child.key;
+    const data = child.val();
+    const tr = document.createElement("tr");
+    tr.setAttribute("data-timestamp", data.timestamp);
+
+    const courseFull = `${data.course} ${data.subcourse}`;
+    if (counters.hasOwnProperty(courseFull)) {
+      counters[courseFull]++;
     }
+    counters.total++;
+
+    tr.innerHTML = `
+      <td>${id}</td>
+      <td>${data.name}</td>
+      <td>${courseFull}</td>
+      <td>${formatDateTime(data.timestamp)}</td>
+      <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    // แสดงผลจำนวนรวมทุกกลุ่ม
+    summaryEl.innerHTML = `
+      <div>
+        จำนวนทั้งหมด: ${counters.total} คน<br>
+        - Mechatronics 2Y: ${counters["Mechatronics 2Y"]} คน<br>
+        - Mechatronics 4Y: ${counters["Mechatronics 4Y"]} คน<br>
+        - Modern Automotive 2Y: ${counters["Modern Automotive 2Y"]} คน<br>
+        - Modern Automotive 4Y: ${counters["Modern Automotive 4Y"]} คน
+      </div>
+    `;
+  });
+}
+
 
 
     window.onload = loadData;
