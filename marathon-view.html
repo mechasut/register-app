@@ -93,6 +93,22 @@
       margin-left: 6px;
       color: #888;
     }
+
+    #summary {
+      position: absolute;
+      top: 120px;       /* สูงจากขอบบน */
+      right: 30px;      /* ชิดขอบขวา */
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: bold;
+      white-space: pre;
+      text-align: left;
+      background-color: rgba(255,255,255,0.85);
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
   </style>
 </head>
 
@@ -113,9 +129,10 @@
     <button class="btn btn-delete-all" onclick="confirmDeleteAll()">🗑 ลบข้อมูลทั้งหมดของวัน</button>
     <br><br>
     <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 ค้นหา ID / ชื่อ / สาขา" />
-<!--     <span id="countDisplay" style="float: right; font-weight: bold; margin-right: 40px; font-size: 18px;">จำนวนทั้งหมด: 0 คน</span> -->
-    <div id="summary" style="text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+<!--     <div id="summary" style="text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div> -->
   </div>
+
+  <div id="summary"></div>
 
   <table id="studentTable">
     <thead>
@@ -271,55 +288,53 @@ function loadData() {
     }
 
     function loadData() {
-  const selectedDay = document.getElementById("daySelect").value;
-  const refPath = "marathon/" + selectedDay;
-  const summaryEl = document.getElementById("summary");
-  tbody.innerHTML = "";
-  db.ref(refPath).off();
-
-  // เคลียร์ข้อมูลก่อนเริ่มใหม่
-  const counters = {
-    "Mechatronics 2Y": 0,
-    "Mechatronics 4Y": 0,
-    "Modern Automotive 2Y": 0,
-    "Modern Automotive 4Y": 0,
-    "total": 0
-  };
-
-  db.ref(refPath).on("child_added", (child) => {
-    const id = child.key;
-    const data = child.val();
-    const tr = document.createElement("tr");
-    tr.setAttribute("data-timestamp", data.timestamp);
-
-    const courseFull = `${data.course} ${data.subcourse}`;
-    if (counters.hasOwnProperty(courseFull)) {
-      counters[courseFull]++;
+      const selectedDay = document.getElementById("daySelect").value;
+      const refPath = "marathon/" + selectedDay;
+      const summaryEl = document.getElementById("summary");
+      tbody.innerHTML = "";
+      db.ref(refPath).off();
+    
+      const counters = {
+        "Mechatronics 2Y": 0,
+        "Mechatronics 4Y": 0,
+        "Modern Automotive 2Y": 0,
+        "Modern Automotive 4Y": 0,
+        "total": 0
+      };
+    
+      db.ref(refPath).once("value", snapshot => {
+        snapshot.forEach(child => {
+          const id = child.key;
+          const data = child.val();
+          const tr = document.createElement("tr");
+          tr.setAttribute("data-timestamp", data.timestamp);
+    
+          const courseFull = `${data.course} ${data.subcourse}`.trim();
+          if (counters.hasOwnProperty(courseFull)) {
+            counters[courseFull]++;
+          }
+          counters.total++;
+    
+          tr.innerHTML = `
+            <td>${id}</td>
+            <td>${data.name}</td>
+            <td>${courseFull}</td>
+            <td>${formatDateTime(data.timestamp)}</td>
+            <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+    
+        // ✅ แสดงผลจำนวนเมื่อโหลดเสร็จ
+        summaryEl.innerHTML = `
+    จำนวนทั้งหมด: ${counters.total} คน
+    - ${"Mechatronics 2Y".padEnd(22)}: ${String(counters["Mechatronics 2Y"]).padStart(2)} คน
+    - ${"Mechatronics 4Y".padEnd(22)}: ${String(counters["Mechatronics 4Y"]).padStart(2)} คน
+    - ${"Modern Automotive 2Y".padEnd(22)}: ${String(counters["Modern Automotive 2Y"]).padStart(2)} คน
+    - ${"Modern Automotive 4Y".padEnd(22)}: ${String(counters["Modern Automotive 4Y"]).padStart(2)} คน
+        `;
+      });
     }
-    counters.total++;
-
-    tr.innerHTML = `
-      <td>${id}</td>
-      <td>${data.name}</td>
-      <td>${courseFull}</td>
-      <td>${formatDateTime(data.timestamp)}</td>
-      <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
-    `;
-    tbody.appendChild(tr);
-
-    // แสดงผลจำนวนรวมทุกกลุ่ม
-    summaryEl.innerHTML = `<pre style="text-align: right; font-size: 18px; font-weight: bold;">
-      จำนวนทั้งหมด: ${counters.total} คน
-      - ${"Mechatronics 2Y".padEnd(22)}: ${String(counters["Mechatronics 2Y"]).padStart(2)} คน
-      - ${"Mechatronics 4Y".padEnd(22)}: ${String(counters["Mechatronics 4Y"]).padStart(2)} คน
-      - ${"Modern Automotive 2Y".padEnd(22)}: ${String(counters["Modern Automotive 2Y"]).padStart(2)} คน
-      - ${"Modern Automotive 4Y".padEnd(22)}: ${String(counters["Modern Automotive 4Y"]).padStart(2)} คน
-      </pre>`;
-  });
-}
-
-
-
     window.onload = loadData;
   </script>
 </body>
