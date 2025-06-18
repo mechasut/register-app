@@ -199,14 +199,18 @@ function loadData() {
   });
 }
 
-    function deleteById(day, id, button) {
-      if (confirm(`ยืนยันลบ ID: ${id} ของวันที่ ${day} ?`)) {
-        db.ref(`marathon/${day}/${id}`).remove().then(() => {
-          button.closest("tr").remove();
-          alert("✅ ลบเรียบร้อย");
-        });
-      }
-    }
+    function deleteById(day, id, button, roundLabel = "") {
+  let path = `marathon/${day}/${id}`;
+  if (roundLabel === "รอบบ่าย") path = `marathon/${day}/round2/${id}`;
+
+  if (confirm(`ยืนยันลบ ID: ${id} (${roundLabel || "รอบเช้า"}) ของวันที่ ${day} ?`)) {
+    db.ref(path).remove().then(() => {
+      button.closest("tr").remove();
+      alert("✅ ลบเรียบร้อย");
+    });
+  }
+}
+
 
     function confirmDeleteAll() {
       const day = document.getElementById("daySelect").value;
@@ -220,21 +224,20 @@ function loadData() {
     }
 
     function downloadCSV() {
-      let csv = "ID,Name,Course,RegisteredAt\n";
-      const rows = tbody.querySelectorAll("tr");
-      rows.forEach(row => {
-        const cells = row.querySelectorAll("td");
-        const rowText = Array.from(cells).slice(0, 4).map(td => `"${td.innerText}"`).join(",");
-        csv += rowText + "\n";
-      });
-      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `marathon_${document.getElementById("daySelect").value}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+  let csv = "ID,Name,Course,RegisteredAt\n";
+  (window.allExportData || []).forEach(entry => {
+    csv += `"${entry.id}","${entry.name}","${entry.course}","${entry.timestamp}"\n`;
+  });
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `marathon_${document.getElementById("daySelect").value}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
     function sortTable(columnIndex, th) {
       const table = document.getElementById("studentTable");
@@ -288,53 +291,68 @@ function loadData() {
     }
 
     function loadData() {
-      const selectedDay = document.getElementById("daySelect").value;
-      const refPath = "marathon/" + selectedDay;
-      const summaryEl = document.getElementById("summary");
-      tbody.innerHTML = "";
-      db.ref(refPath).off();
-    
-      const counters = {
-        "Mechatronics 2Y": 0,
-        "Mechatronics 4Y": 0,
-        "Modern Automotive 2Y": 0,
-        "Modern Automotive 4Y": 0,
-        "total": 0
-      };
-    
-      db.ref(refPath).once("value", snapshot => {
-        snapshot.forEach(child => {
-          const id = child.key;
-          const data = child.val();
-          const tr = document.createElement("tr");
-          tr.setAttribute("data-timestamp", data.timestamp);
-    
-          const courseFull = `${data.course} ${data.subcourse}`.trim();
-          if (counters.hasOwnProperty(courseFull)) {
-            counters[courseFull]++;
-          }
-          counters.total++;
-    
-          tr.innerHTML = `
-            <td>${id}</td>
-            <td>${data.name}</td>
-            <td>${courseFull}</td>
-            <td>${formatDateTime(data.timestamp)}</td>
-            <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this)">ลบ</button></td>
-          `;
-          tbody.appendChild(tr);
-        });
-    
-        // ✅ แสดงผลจำนวนเมื่อโหลดเสร็จ
-        summaryEl.innerHTML = `
-    จำนวนทั้งหมด: ${counters.total} คน
-    - ${"Mechatronics 2Y".padEnd(22)}: ${String(counters["Mechatronics 2Y"]).padStart(2)} คน
-    - ${"Mechatronics 4Y".padEnd(22)}: ${String(counters["Mechatronics 4Y"]).padStart(2)} คน
-    - ${"Modern Automotive 2Y".padEnd(22)}: ${String(counters["Modern Automotive 2Y"]).padStart(2)} คน
-    - ${"Modern Automotive 4Y".padEnd(22)}: ${String(counters["Modern Automotive 4Y"]).padStart(2)} คน
-        `;
+  const selectedDay = document.getElementById("daySelect").value;
+  const refPathMain = "marathon/" + selectedDay;
+  const refPathRound2 = refPathMain + "/round2";
+  const summaryEl = document.getElementById("summary");
+  tbody.innerHTML = "";
+
+  const counters = {
+    "Mechatronics 2Y": 0,
+    "Mechatronics 4Y": 0,
+    "Modern Automotive 2Y": 0,
+    "Modern Automotive 4Y": 0,
+    "total": 0
+  };
+
+  const allData = [];
+
+  function appendRow(id, data, roundLabel = "") {
+    const courseFull = `${data.course} ${data.subcourse}`.trim();
+    if (counters.hasOwnProperty(courseFull)) counters[courseFull]++;
+    counters.total++;
+
+    const tr = document.createElement("tr");
+    tr.setAttribute("data-timestamp", data.timestamp);
+    tr.innerHTML = `
+      <td>${id}</td>
+      <td>${data.name}</td>
+      <td>${courseFull}${roundLabel ? " (" + roundLabel + ")" : ""}</td>
+      <td>${formatDateTime(data.timestamp)}</td>
+      <td><button class="delete" onclick="deleteById('${selectedDay}', '${id}', this, '${roundLabel}')">ลบ</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    allData.push({ id, name: data.name, course: courseFull + (roundLabel ? ` (${roundLabel})` : ""), timestamp: formatDateTime(data.timestamp) });
+  }
+
+  // โหลดรอบเช้า
+  db.ref(refPathMain).once("value", snapshot => {
+    snapshot.forEach(child => {
+      if (child.key === "round2") return; // ข้าม subpath round2
+      appendRow(child.key, child.val(), "รอบเช้า");
+    });
+
+    // โหลดรอบบ่าย
+    db.ref(refPathRound2).once("value", snapshot2 => {
+      snapshot2.forEach(child => {
+        appendRow(child.key, child.val(), "รอบบ่าย");
       });
-    }
+
+      summaryEl.innerHTML = `
+จำนวนทั้งหมด: ${counters.total} คน
+- ${"Mechatronics 2Y".padEnd(22)}: ${String(counters["Mechatronics 2Y"]).padStart(2)} คน
+- ${"Mechatronics 4Y".padEnd(22)}: ${String(counters["Mechatronics 4Y"]).padStart(2)} คน
+- ${"Modern Automotive 2Y".padEnd(22)}: ${String(counters["Modern Automotive 2Y"]).padStart(2)} คน
+- ${"Modern Automotive 4Y".padEnd(22)}: ${String(counters["Modern Automotive 4Y"]).padStart(2)} คน
+      `;
+
+      // ✅ เก็บไว้เพื่อ export CSV
+      window.allExportData = allData;
+    });
+  });
+}
+
     window.onload = loadData;
   </script>
 </body>
